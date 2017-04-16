@@ -5,6 +5,17 @@
         "periodYear":2017,
         "planningOpen":true,
         "actualsOpen":true,
-        "items":{}
+        "items": [
+            {
+                "uuid":"notReally-a-uuid-but-close-enough",
+                "periodNum":1,
+                "periodYear":2017,
+                "description":"tithe",
+                "amount":26.73,
+                "account":"Checking",
+                "date":"",
+                "type":"PlannedItem"
+            }
+        ]
     }
 }
