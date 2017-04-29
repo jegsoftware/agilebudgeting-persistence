@@ -1,0 +1,12 @@
+{
+    "persistenceType":"saveItem",
+    "data":{
+        "periodNum":1,
+        "periodYear":2017,
+        "description":"grocery",
+        "amount":150.00,
+        "account":"Checking",
+        "date":"",
+        "type":"PlannedItem"
+    }
+}

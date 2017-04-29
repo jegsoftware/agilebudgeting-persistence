@@ -1,5 +1,5 @@
 {
-    "persistenceType":"savePlan",
+    "persistenceType":"loadItem",
     "data":{
         "uuid":"notReally-a-uuid-but-close-enough"
     }
