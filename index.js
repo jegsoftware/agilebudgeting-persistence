@@ -41,12 +41,14 @@ function loadPlan(identifier) {
     var periodYear = identifier.periodYear;
     var actualsOpen = true;
     var planningOpen = true;
-    return { 
+    var plan = { 
         periodNum : periodNum, 
         periodYear : periodYear, 
         actualsOpen : actualsOpen, 
-        planningOpen : planningOpen 
+        planningOpen : planningOpen,
+        items : loadItems(periodNum, periodYear)
     };
+    return plan;
 }
 
 function saveItem(item) {
@@ -89,10 +91,29 @@ function loadItem(identifier) {
     return {
         uuid : itemId,
         periodNum : periodNum,
+        periodYear : periodYear,
         description : description,
         amount : amount,
         account : account,
         date : date,
         type : type
     };
+}
+
+function loadItems(periodNum, periodYear) {
+    var items = [];
+    for (var i = 0; i < periodNum; i++) {
+        var item = {
+            uuid : "uuid-for-item-" + i,
+            periodNum : periodNum,
+            periodYear : periodYear,
+            description : "description for item " + i,
+            amount : 42.00 + i,
+            account : "Checking",
+            date : periodNum + "/" + (i+1) + "/2017",
+            type : "PlannedItem"
+        }
+        items.push(item);
+    }
+    return items;
 }
