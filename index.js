@@ -14,14 +14,13 @@ exports.persistenceHandler = function (req, res) {
 function savePlan(plan) {
     var periodNum = plan.periodNum;
     var periodYear = plan.periodYear;
-    var actualsOpen = plan.actualsOpen;
-    var planningOpen = plan.planningOpen;
+    var actualsStatus = plan.actualsStatus;
+    var planningStatus = plan.planningStatus;
 
     var logStr = "Saving plan for period " + periodNum + "/" + periodYear + "\n";
-    logStr += "Planning is " 
+    logStr += "Planning is " + planningStatus + "\n"; 
     logStr += planningOpen ? "open.\n" : "closed.\n";
-    logStr += "Actuals are " 
-    logStr += actualsOpen ? "open.\n" : "closed.\n";
+    logStr += "Actuals are " + actualsStatus +"\n"; 
     if (plan.items) {
         logStr += "Items:\n";
         for (var i=0; i < plan.items.length; i++)
@@ -39,13 +38,13 @@ function savePlan(plan) {
 function loadPlan(identifier) {
     var periodNum = identifier.periodNum;
     var periodYear = identifier.periodYear;
-    var actualsOpen = true;
-    var planningOpen = true;
+    var actualsStatus = "OPEN";
+    var planningStatus = "OPEN";
     var plan = { 
         periodNum : periodNum, 
         periodYear : periodYear, 
-        actualsOpen : actualsOpen, 
-        planningOpen : planningOpen,
+        actualsStatus : actualsStatus, 
+        planningStatus : planningStatus,
         items : loadItems(periodNum, periodYear)
     };
     return plan;

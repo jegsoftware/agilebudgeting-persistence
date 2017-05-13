@@ -3,8 +3,8 @@
     "data":{
         "periodNum":1,
         "periodYear":2017,
-        "planningOpen":true,
-        "actualsOpen":true,
+        "planningStatus":"OPEN",
+        "actualsStatus":"OPEN",
         "items": [
             {
                 "uuid":"notReally-a-uuid-but-close-enough",
