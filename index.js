@@ -1,3 +1,7 @@
+var datastore = require('@google-cloud/datastore')({
+    projectId: 'arcane-antler-164801'
+});
+
 exports.persistenceHandler = function (req, res) {
 
     var response = "";
@@ -19,7 +23,6 @@ function savePlan(plan) {
 
     var logStr = "Saving plan for period " + periodNum + "/" + periodYear + "\n";
     logStr += "Planning is " + planningStatus + "\n"; 
-    logStr += planningOpen ? "open.\n" : "closed.\n";
     logStr += "Actuals are " + actualsStatus +"\n"; 
     if (plan.items) {
         logStr += "Items:\n";
