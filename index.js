@@ -4,18 +4,16 @@ var datastore = require('@google-cloud/datastore')({
 
 exports.persistenceHandler = function (req, res) {
 
-    var response = "";
     switch (req.body.persistenceType) {
-        case "savePlan": response = savePlan(req.body.data); break;
-        case "loadPlan": response = loadPlan(req.body.data); break;
-        case "saveItem": response = saveItem(req.body.data); break;
-        case "loadItem": response = loadItem(req.body.data); break;
-        default: response = "Unknown persistenceType";
+        case "savePlan": response = savePlan(req.body.data, (response) => { res.send(response); }); break;
+        case "loadPlan": response = loadPlan(req.body.data, (response) => { res.send(response); }); break;
+        case "saveItem": response = saveItem(req.body.data, (response) => { res.send(response); }); break;
+        case "loadItem": response = loadItem(req.body.data, (response) => { res.send(response); }); break;
+        default: response = res.send("Unknown persistenceType");
     }
-    res.send(response);
 }
 
-function savePlan(plan) {
+function savePlan(plan, cb) {
     var periodNum = plan.periodNum;
     var periodYear = plan.periodYear;
     var actualsStatus = plan.actualsStatus;
@@ -23,37 +21,64 @@ function savePlan(plan) {
 
     var logStr = "Saving plan for period " + periodNum + "/" + periodYear + "\n";
     logStr += "Planning is " + planningStatus + "\n"; 
-    logStr += "Actuals are " + actualsStatus +"\n"; 
+    logStr += "Actuals are " + actualsStatus +"\n";    
     if (plan.items) {
         logStr += "Items:\n";
         for (var i=0; i < plan.items.length; i++)
         {
             logStr += "  " + saveItem(plan.items[i]) + "\n";
         }
+        // after saving the items delete them from the object so we don't store them in the plan table
+        delete plan.items;
     }
-    console.log(logStr);
-    return { 
-        periodNum : periodNum, 
-        periodYear : periodYear 
-    };
+
+    findPlan(periodNum, periodYear, (foundPlan, planKey) => {
+        if (!planKey) {
+            planKey = datastore.key('plan');
+        }
+        var planStorageObj = {
+            key: planKey,
+            data: plan
+        }
+
+        //logStr += 'saving plan to storageObj: ' + JSON.stringify(planStorageObj);
+        datastore.save(planStorageObj, (err) => {
+            if (err) {
+                logStr += 'ERROR: ' + err + '\n';
+                console.log(logStr);
+                cb ({});
+            } else {
+                console.log(logStr);
+                logStr += 'Saved plan\n';
+                cb( {
+                    periodNum : periodNum, 
+                    periodYear : periodYear 
+                });
+            }
+        });
+    });
 }
 
-function loadPlan(identifier) {
+function loadPlan(identifier, cb) {
     var periodNum = identifier.periodNum;
     var periodYear = identifier.periodYear;
     var actualsStatus = "OPEN";
     var planningStatus = "OPEN";
-    var plan = { 
-        periodNum : periodNum, 
-        periodYear : periodYear, 
-        actualsStatus : actualsStatus, 
-        planningStatus : planningStatus,
-        items : loadItems(periodNum, periodYear)
-    };
-    return plan;
+    findPlan(periodNum, periodYear, (plan, planKey) => {
+        plan.items = loadItems(periodNum, periodYear);
+        /*{ 
+            periodNum : periodNum, 
+            periodYear : periodYear, 
+            actualsStatus : actualsStatus, 
+            planningStatus : planningStatus, 
+            items : loadItems(periodNum, periodYear)
+        };*/
+        cb (plan);
+    });
+
 }
 
-function saveItem(item) {
+function saveItem(item, cb) {
     var itemId = item.uuid;
     var periodNum = item.periodNum;
     var periodYear = item.periodYear;
@@ -78,7 +103,7 @@ function saveItem(item) {
     return { uuid : itemId };
 }
 
-function loadItem(identifier) {
+function loadItem(identifier, cb) {
     var itemId = identifier.uuid;
 
     if (itemId == null) return "No item found.\n";
@@ -102,7 +127,7 @@ function loadItem(identifier) {
     };
 }
 
-function loadItems(periodNum, periodYear) {
+function loadItems(periodNum, periodYear, cb) {
     var items = [];
     for (var i = 0; i < periodNum; i++) {
         var item = {
@@ -118,4 +143,21 @@ function loadItems(periodNum, periodYear) {
         items.push(item);
     }
     return items;
+}
+
+function findPlan(periodNum, periodYear, cb) {
+    var query = datastore.createQuery('plan');
+    query.filter('periodNum', periodNum);
+    query.filter('periodYear', periodYear);
+    datastore.runQuery(query, function (err, entities) {
+        if (entities.length > 1) {
+            console.error("Got more than one plan for: " + periodNum + "/" + periodYear);
+        }
+        var plan = entities[0];
+        var planKey = entities[0][datastore.KEY];
+        console.log("Got " + entities.length + " entities from query\n;")
+        console.log('planObj: ' + JSON.stringify(plan));
+        console.log('planKey: ' + JSON.stringify(planKey));
+        cb (plan, planKey);
+    });
 }

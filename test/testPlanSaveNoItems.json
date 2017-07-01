@@ -1,7 +1,7 @@
 {
     "persistenceType":"savePlan",
     "data":{
-        "periodNum":1,
+        "periodNum":2,
         "periodYear":2017,
         "planningStatus":"OPEN",
         "actualsStatus":"OPEN"

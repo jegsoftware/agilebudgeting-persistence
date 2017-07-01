@@ -1,14 +1,14 @@
 {
     "persistenceType":"savePlan",
     "data":{
-        "periodNum":1,
+        "periodNum":3,
         "periodYear":2017,
         "planningStatus":"OPEN",
         "actualsStatus":"OPEN",
         "items": [
             {
                 "uuid":"notReally-a-uuid-but-close-enough",
-                "periodNum":1,
+                "periodNum":3,
                 "periodYear":2017,
                 "description":"tithe",
                 "amount":26.73,
