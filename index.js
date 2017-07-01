@@ -41,7 +41,6 @@ function savePlan(plan, cb) {
             data: plan
         }
 
-        //logStr += 'saving plan to storageObj: ' + JSON.stringify(planStorageObj);
         datastore.save(planStorageObj, (err) => {
             if (err) {
                 logStr += 'ERROR: ' + err + '\n';
@@ -66,13 +65,6 @@ function loadPlan(identifier, cb) {
     var planningStatus = "OPEN";
     findPlan(periodNum, periodYear, (plan, planKey) => {
         plan.items = loadItems(periodNum, periodYear);
-        /*{ 
-            periodNum : periodNum, 
-            periodYear : periodYear, 
-            actualsStatus : actualsStatus, 
-            planningStatus : planningStatus, 
-            items : loadItems(periodNum, periodYear)
-        };*/
         cb (plan);
     });
 
