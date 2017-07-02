@@ -61,8 +61,6 @@ function savePlan(plan, cb) {
 function loadPlan(identifier, cb) {
     var periodNum = identifier.periodNum;
     var periodYear = identifier.periodYear;
-    var actualsStatus = "OPEN";
-    var planningStatus = "OPEN";
     findPlan(periodNum, periodYear, (plan, planKey) => {
         plan.items = loadItems(periodNum, periodYear);
         cb (plan);
@@ -71,36 +69,44 @@ function loadPlan(identifier, cb) {
 }
 
 function saveItem(item, cb) {
-    var itemId = item.uuid;
-    var periodNum = item.periodNum;
-    var periodYear = item.periodYear;
-    var description = item.description;
-    var amount = item.amount;
-    var account = item.account;
-    var date = item.date;
-    var type = item.type;
+    if (item.uuid == null) {
+        cb('Invalid item: missing uuid');
+        return;
+    }
 
-    if (itemId == null) itemId = 'this-is-a-generated-uuid';
+    findItem(item.uuid, (foundItem, itemKey) => {
+        if (!itemKey) {
+            itemKey = datastore.key(['planItem', item.uuid]);
+        }
+        var itemStorageObj = {
+            key: itemKey,
+            data: item
+        }
 
-    var logStr = "Saving item with id " + itemId + "\n";
-    logStr += "periodNum = " + periodNum + "\n";
-    logStr += "periodYear = " + periodYear + "\n";
-    logStr += "description = " + description + "\n";
-    logStr += "amount = " + amount + "\n";
-    logStr += "account = " + account + "\n";
-    logStr += "date = " + date + "\n";
-    logStr += "type = " + type + "\n";
-    console.log(logStr);
-
-    return { uuid : itemId };
+        datastore.save(itemStorageObj, (err) => {
+            if (err) {
+                console.error (err);
+                cb ({});
+            } else {
+                console.log("Successfully saved item with uuid: " + item.uuid);
+                cb({ uuid: item.uuid });
+            }
+        });
+    });
 }
 
 function loadItem(identifier, cb) {
     var itemId = identifier.uuid;
 
-    if (itemId == null) return "No item found.\n";
+    if (itemId == null) {
+        cb("No item found.\n");
+    }
 
-    var periodNum = 1;
+    findItem(itemId, (item, itemKey) => {
+        cb(item);
+    });
+
+/*    var periodNum = 1;
     var periodYear = 2017;
     var description = "test description";
     var amount = 42.00;
@@ -116,7 +122,7 @@ function loadItem(identifier, cb) {
         account : account,
         date : date,
         type : type
-    };
+    };*/
 }
 
 function loadItems(periodNum, periodYear, cb) {
@@ -146,10 +152,29 @@ function findPlan(periodNum, periodYear, cb) {
             console.error("Got more than one plan for: " + periodNum + "/" + periodYear);
         }
         var plan = entities[0];
-        var planKey = entities[0][datastore.KEY];
+        var planKey;
+        if (plan) planKey = entities[0][datastore.KEY];
         console.log("Got " + entities.length + " entities from query\n;")
         console.log('planObj: ' + JSON.stringify(plan));
         console.log('planKey: ' + JSON.stringify(planKey));
         cb (plan, planKey);
     });
+}
+
+function findItem(uuid, cb) {
+    var query = datastore.createQuery('planItem');
+    query.filter('uuid', uuid);
+    datastore.runQuery(query, function (err, entities) {
+        if (entities.length > 1) {
+            console.error("Got more than one item for: " + uuid);
+        }
+        var item = entities[0];
+        var itemKey;
+        if (item) itemKey = entities[0][datastore.KEY];
+        console.log("Got " + entities.length + " entities from query\n;")
+        console.log('itemObj: ' + JSON.stringify(item));
+        console.log('itemKey: ' + JSON.stringify(itemKey));
+        cb (item, itemKey);
+    });
+    
 }
