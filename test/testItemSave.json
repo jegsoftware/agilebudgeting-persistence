@@ -2,7 +2,7 @@
     "persistenceType":"saveItem",
     "data":{
         "uuid":"notReally-a-uuid-but-close-enough",
-        "periodNum":1,
+        "periodNum":2,
         "periodYear":2017,
         "description":"tithe",
         "amount":26.73,

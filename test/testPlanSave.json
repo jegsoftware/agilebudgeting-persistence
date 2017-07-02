@@ -7,11 +7,11 @@
         "actualsStatus":"OPEN",
         "items": [
             {
-                "uuid":"notReally-a-uuid-but-close-enough",
+                "uuid":"notReally-a-uuid-but-close-enough2",
                 "periodNum":3,
                 "periodYear":2017,
-                "description":"tithe",
-                "amount":26.73,
+                "description":"item in plan save test",
+                "amount":42.00,
                 "account":"Checking",
                 "date":"",
                 "type":"PlannedItem"

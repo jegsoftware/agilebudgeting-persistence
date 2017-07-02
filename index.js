@@ -1,6 +1,7 @@
 var datastore = require('@google-cloud/datastore')({
     projectId: 'arcane-antler-164801'
 });
+var async = require('async');
 
 exports.persistenceHandler = function (req, res) {
 
@@ -19,41 +20,33 @@ function savePlan(plan, cb) {
     var actualsStatus = plan.actualsStatus;
     var planningStatus = plan.planningStatus;
 
-    var logStr = "Saving plan for period " + periodNum + "/" + periodYear + "\n";
-    logStr += "Planning is " + planningStatus + "\n"; 
-    logStr += "Actuals are " + actualsStatus +"\n";    
-    if (plan.items) {
-        logStr += "Items:\n";
-        for (var i=0; i < plan.items.length; i++)
-        {
-            logStr += "  " + saveItem(plan.items[i]) + "\n";
+    async.each(plan.items, saveItem, (err) => {
+        if (err) {
+            console.error("Error saving items: " + err);
         }
-        // after saving the items delete them from the object so we don't store them in the plan table
+        // the items are saved, so delete them for a cleaner storage of the plan
         delete plan.items;
-    }
 
-    findPlan(periodNum, periodYear, (foundPlan, planKey) => {
-        if (!planKey) {
-            planKey = datastore.key('plan');
-        }
-        var planStorageObj = {
-            key: planKey,
-            data: plan
-        }
-
-        datastore.save(planStorageObj, (err) => {
-            if (err) {
-                logStr += 'ERROR: ' + err + '\n';
-                console.log(logStr);
-                cb ({});
-            } else {
-                console.log(logStr);
-                logStr += 'Saved plan\n';
-                cb( {
-                    periodNum : periodNum, 
-                    periodYear : periodYear 
-                });
+        findPlan(periodNum, periodYear, (foundPlan, planKey) => {
+            if (!planKey) {
+                planKey = datastore.key('plan');
             }
+            var planStorageObj = {
+                key: planKey,
+                data: plan
+            }
+
+            datastore.save(planStorageObj, (err) => {
+                if (err) {
+                    console.error('ERROR: ' + err);
+                    cb ({});
+                } else {
+                    cb( {
+                        periodNum : periodNum, 
+                        periodYear : periodYear 
+                    });
+                }
+            });
         });
     });
 }
@@ -62,8 +55,10 @@ function loadPlan(identifier, cb) {
     var periodNum = identifier.periodNum;
     var periodYear = identifier.periodYear;
     findPlan(periodNum, periodYear, (plan, planKey) => {
-        plan.items = loadItems(periodNum, periodYear);
-        cb (plan);
+        loadItems(periodNum, periodYear, (items) => {
+            if (items && items.length > 0) plan.items = items;
+            cb (plan);
+        });
     });
 
 }
@@ -105,42 +100,20 @@ function loadItem(identifier, cb) {
     findItem(itemId, (item, itemKey) => {
         cb(item);
     });
-
-/*    var periodNum = 1;
-    var periodYear = 2017;
-    var description = "test description";
-    var amount = 42.00;
-    var account = "Checking";
-    var date = "2017-01-01";
-    var type = "ActualItem";
-    return {
-        uuid : itemId,
-        periodNum : periodNum,
-        periodYear : periodYear,
-        description : description,
-        amount : amount,
-        account : account,
-        date : date,
-        type : type
-    };*/
 }
 
 function loadItems(periodNum, periodYear, cb) {
-    var items = [];
-    for (var i = 0; i < periodNum; i++) {
-        var item = {
-            uuid : "uuid-for-item-" + i,
-            periodNum : periodNum,
-            periodYear : periodYear,
-            description : "description for item " + i,
-            amount : 42.00 + i,
-            account : "Checking",
-            date : periodNum + "/" + (i+1) + "/2017",
-            type : "PlannedItem"
+    var query = datastore.createQuery('planItem');
+    query.filter('periodNum', periodNum);
+    query.filter('periodYear', periodYear);
+    datastore.runQuery(query, function (err, entities) {
+        if (err) {
+            console.error("Error querying data store for: " + periodNum + "/" + periodYear + ": " + err);
+            cb([]);
+        } else {
+            cb(entities);
         }
-        items.push(item);
-    }
-    return items;
+    });
 }
 
 function findPlan(periodNum, periodYear, cb) {
