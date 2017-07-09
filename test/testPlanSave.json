@@ -4,18 +4,6 @@
         "periodNum":3,
         "periodYear":2017,
         "planningStatus":"OPEN",
-        "actualsStatus":"OPEN",
-        "items": [
-            {
-                "uuid":"notReally-a-uuid-but-close-enough2",
-                "periodNum":3,
-                "periodYear":2017,
-                "description":"item in plan save test",
-                "amount":42.00,
-                "account":"Checking",
-                "date":"",
-                "type":"PlannedItem"
-            }
-        ]
+        "actualsStatus":"OPEN"
     }
 }

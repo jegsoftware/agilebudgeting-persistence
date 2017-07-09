@@ -19,34 +19,27 @@ function savePlan(plan, cb) {
     var periodYear = plan.periodYear;
     var actualsStatus = plan.actualsStatus;
     var planningStatus = plan.planningStatus;
+    console.log("Saving plan for period " + periodNum + "/" + periodYear);
 
-    async.each(plan.items, saveItem, (err) => {
-        if (err) {
-            console.error("Error saving items: " + err);
+    findPlan(periodNum, periodYear, (foundPlan, planKey) => {
+        if (!planKey) {
+            planKey = datastore.key('plan');
         }
-        // the items are saved, so delete them for a cleaner storage of the plan
-        delete plan.items;
+        var planStorageObj = {
+            key: planKey,
+            data: plan
+        }
 
-        findPlan(periodNum, periodYear, (foundPlan, planKey) => {
-            if (!planKey) {
-                planKey = datastore.key('plan');
+        datastore.save(planStorageObj, (err) => {
+            if (err) {
+                console.error('ERROR: ' + err);
+                cb ({});
+            } else {
+                cb( {
+                    periodNum : periodNum, 
+                    periodYear : periodYear 
+                });
             }
-            var planStorageObj = {
-                key: planKey,
-                data: plan
-            }
-
-            datastore.save(planStorageObj, (err) => {
-                if (err) {
-                    console.error('ERROR: ' + err);
-                    cb ({});
-                } else {
-                    cb( {
-                        periodNum : periodNum, 
-                        periodYear : periodYear 
-                    });
-                }
-            });
         });
     });
 }
@@ -54,16 +47,13 @@ function savePlan(plan, cb) {
 function loadPlan(identifier, cb) {
     var periodNum = identifier.periodNum;
     var periodYear = identifier.periodYear;
-    findPlan(periodNum, periodYear, (plan, planKey) => {
-        loadItems(periodNum, periodYear, (items) => {
-            if (items && items.length > 0) plan.items = items;
-            cb (plan);
-        });
-    });
+    console.log("Loading plan for period " + periodNum + "/" + periodYear);
 
+    findPlan(periodNum, periodYear, cb);
 }
 
 function saveItem(item, cb) {
+    console.log("Saving item with uuid: " + item.uuid);
     if (item.uuid == null) {
         cb('Invalid item: missing uuid');
         return;
@@ -92,6 +82,7 @@ function saveItem(item, cb) {
 
 function loadItem(identifier, cb) {
     var itemId = identifier.uuid;
+    console.log("Loading item with uuid: " + itemId);
 
     if (itemId == null) {
         cb("No item found.\n");
@@ -99,20 +90,6 @@ function loadItem(identifier, cb) {
 
     findItem(itemId, (item, itemKey) => {
         cb(item);
-    });
-}
-
-function loadItems(periodNum, periodYear, cb) {
-    var query = datastore.createQuery('planItem');
-    query.filter('periodNum', periodNum);
-    query.filter('periodYear', periodYear);
-    datastore.runQuery(query, function (err, entities) {
-        if (err) {
-            console.error("Error querying data store for: " + periodNum + "/" + periodYear + ": " + err);
-            cb([]);
-        } else {
-            cb(entities);
-        }
     });
 }
 
