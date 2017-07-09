@@ -1,7 +1,6 @@
 var datastore = require('@google-cloud/datastore')({
     projectId: 'arcane-antler-164801'
 });
-var async = require('async');
 
 exports.persistenceHandler = function (req, res) {
 
