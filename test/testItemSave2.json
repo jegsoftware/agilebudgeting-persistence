@@ -1,0 +1,13 @@
+{
+    "persistenceType":"saveItem",
+    "data":{
+        "uuid":"notReally-a-uuid-but-relates",
+        "periodNum":2,
+        "periodYear":2017,
+        "description":"tithe",
+        "amount":26.73,
+        "account":"Checking",
+        "date":"",
+        "type":"ActualItem"
+    }
+}

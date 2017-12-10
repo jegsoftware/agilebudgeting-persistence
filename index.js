@@ -10,6 +10,7 @@ exports.persistenceHandler = function (req, res) {
             case "loadPlan": loadPlan(req.body.data, (response) => { res.send(response); }); break;
             case "saveItem": saveItem(req.body.data, (response) => { res.send(response); }); break;
             case "loadItem": loadItem(req.body.data, (response) => { res.send(response); }); break;
+            case "saveItemRelationship": saveItemRelationship(req.body.data, (response) => { res.send(response); }); break;
             default: 
                 res.statusCode = 400;
                 res.send("Unknown persistenceType");
@@ -119,6 +120,22 @@ function findPlan(periodNum, periodYear, cb) {
             console.log('planKey: ' + JSON.stringify(planKey));
             cb (plan, planKey);
         }
+    });
+}
+
+function saveItemRelationship(items, cb) {
+    findItem(items.uuid1, (item1, item1Key) => {
+        if (!item1.relatedItems) item1.relatedItems = [];
+        item1.relatedItems.push(items.uuid2);
+        saveItem(item1, (item1) => {
+            findItem(items.uuid2, (item2, item2key) => {
+                if (!item2.relatedItems) item2.relatedItems = [];
+                item2.relatedItems.push(items.uuid1);
+                saveItem(item2, (item2) => {
+                    cb([items.uuid1, items.uuid2]);
+                });                                     
+            });
+        });
     });
 }
 

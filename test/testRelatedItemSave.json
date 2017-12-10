@@ -1,0 +1,7 @@
+{
+    "persistenceType":"saveItemRelationship",
+    "data":{
+        "uuid1":"notReally-a-uuid-but-relates",
+        "uuid2":"notReally-a-uuid-but-close-enough"
+    }
+}
