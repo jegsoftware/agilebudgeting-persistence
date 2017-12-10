@@ -6,13 +6,16 @@ exports.persistenceHandler = function (req, res) {
 
     if (req.body.data) {
         switch (req.body.persistenceType) {
-            case "savePlan": response = savePlan(req.body.data, (response) => { res.send(response); }); break;
-            case "loadPlan": response = loadPlan(req.body.data, (response) => { res.send(response); }); break;
-            case "saveItem": response = saveItem(req.body.data, (response) => { res.send(response); }); break;
-            case "loadItem": response = loadItem(req.body.data, (response) => { res.send(response); }); break;
-            default: response = res.send("Unknown persistenceType");
+            case "savePlan": savePlan(req.body.data, (response) => { res.send(response); }); break;
+            case "loadPlan": loadPlan(req.body.data, (response) => { res.send(response); }); break;
+            case "saveItem": saveItem(req.body.data, (response) => { res.send(response); }); break;
+            case "loadItem": loadItem(req.body.data, (response) => { res.send(response); }); break;
+            default: 
+                res.statusCode = 400;
+                res.send("Unknown persistenceType");
         }
     } else {
+        res.statusCode = 400;
         response = res.send("No data received");
     }
 }
