@@ -4,12 +4,16 @@ var datastore = require('@google-cloud/datastore')({
 
 exports.persistenceHandler = function (req, res) {
 
-    switch (req.body.persistenceType) {
-        case "savePlan": response = savePlan(req.body.data, (response) => { res.send(response); }); break;
-        case "loadPlan": response = loadPlan(req.body.data, (response) => { res.send(response); }); break;
-        case "saveItem": response = saveItem(req.body.data, (response) => { res.send(response); }); break;
-        case "loadItem": response = loadItem(req.body.data, (response) => { res.send(response); }); break;
-        default: response = res.send("Unknown persistenceType");
+    if (req.body.data) {
+        switch (req.body.persistenceType) {
+            case "savePlan": response = savePlan(req.body.data, (response) => { res.send(response); }); break;
+            case "loadPlan": response = loadPlan(req.body.data, (response) => { res.send(response); }); break;
+            case "saveItem": response = saveItem(req.body.data, (response) => { res.send(response); }); break;
+            case "loadItem": response = loadItem(req.body.data, (response) => { res.send(response); }); break;
+            default: response = res.send("Unknown persistenceType");
+        }
+    } else {
+        response = res.send("No data received");
     }
 }
 
@@ -97,16 +101,21 @@ function findPlan(periodNum, periodYear, cb) {
     query.filter('periodNum', periodNum);
     query.filter('periodYear', periodYear);
     datastore.runQuery(query, function (err, entities) {
-        if (entities.length > 1) {
-            console.error("Got more than one plan for: " + periodNum + "/" + periodYear);
+        if (err) {
+            console.log("got err: " + err);
+            cb();
+        } else {
+            if (entities && entities.length > 1) {
+                console.error("Got more than one plan for: " + periodNum + "/" + periodYear);
+            }
+            var plan = entities[0];
+            var planKey;
+            if (plan) planKey = entities[0][datastore.KEY];
+            console.log("Got " + entities.length + " entities from query\n;")
+            console.log('planObj: ' + JSON.stringify(plan));
+            console.log('planKey: ' + JSON.stringify(planKey));
+            cb (plan, planKey);
         }
-        var plan = entities[0];
-        var planKey;
-        if (plan) planKey = entities[0][datastore.KEY];
-        console.log("Got " + entities.length + " entities from query\n;")
-        console.log('planObj: ' + JSON.stringify(plan));
-        console.log('planKey: ' + JSON.stringify(planKey));
-        cb (plan, planKey);
     });
 }
 
